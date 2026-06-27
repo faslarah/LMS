@@ -1,0 +1,29 @@
+# Environment variables
+.env
+.env.*
+
+# MacOS
+.DS_Store
+
+# Node/React
+frontend/lms-app/node_modules/
+frontend/lms-app/dist/
+frontend/lms-app/.npm
+frontend/lms-app/npm-debug.log*
+
+# Python/Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+backend/core/db.sqlite3
+backend/core/media/
+backend/core/static/
+.venv/
+venv/
+ENV/
+env/
+
+# Docker
+.docker/
+docker-compose.override.yml
