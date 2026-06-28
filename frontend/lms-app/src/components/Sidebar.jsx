@@ -186,8 +186,8 @@ const Sidebar = () => {
             <div style={{ width: '32px', height: '32px', backgroundColor: 'var(--accent)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <IconGraduationCap size={20} color="#000" />
             </div>
-            <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff' }}>
-              LMS<span style={{ color: 'var(--accent)' }}>Pro</span>
+            <span style={{ fontSize: '20px', fontWeight: '600', color: '#fff', letterSpacing: '0.5px' }}>
+              SkillHub
             </span>
           </Link>
         )}

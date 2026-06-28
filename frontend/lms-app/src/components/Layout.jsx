@@ -24,7 +24,8 @@ const Layout = ({ children }) => {
           alignItems: 'center', 
           padding: '16px 40px',
           borderBottom: '1px solid rgba(255,255,255,0.05)',
-          backgroundColor: 'var(--bg-secondary)',
+          backgroundColor: 'rgba(10, 16, 32, 0.7)',
+          backdropFilter: 'blur(12px)',
           position: 'sticky',
           top: 0,
           zIndex: 10
@@ -33,13 +34,13 @@ const Layout = ({ children }) => {
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
-            backgroundColor: 'var(--bg-primary)',
-            border: '1px solid var(--border)',
-            borderRadius: '8px',
+            backgroundColor: 'rgba(255,255,255,0.02)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            borderRadius: '12px',
             padding: '8px 16px',
             width: '100%',
-            maxWidth: '400px',
-            color: 'var(--text-secondary)'
+            maxWidth: '500px',
+            color: 'var(--text-muted)'
           }}>
             <IconSearch size={18} style={{ marginRight: '12px' }} />
             <input 
@@ -51,9 +52,17 @@ const Layout = ({ children }) => {
                 color: 'var(--text-primary)',
                 width: '100%',
                 outline: 'none',
-                fontSize: '14px'
+                fontSize: '14px',
+                fontFamily: 'var(--font-main)'
               }}
             />
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px',
+              fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)'
+            }}>
+              <span style={{ fontSize: '14px' }}>⌘</span> K
+            </div>
           </div>
 
           {/* Right Actions */}

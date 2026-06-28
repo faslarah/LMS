@@ -37,12 +37,13 @@ const InstructorProfile = () => {
   return (
     <div>
       {/* Profile Header */}
-      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '32px', marginBottom: '40px' }}>
+      <div className="glass-card animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '32px', marginBottom: '40px', padding: '40px', border: '1px solid rgba(184, 255, 59, 0.2)' }}>
         <div style={{ 
           width: '120px', height: '120px', borderRadius: '50%', 
-          backgroundColor: 'var(--bg-tertiary)', display: 'flex', 
+          backgroundColor: 'rgba(184, 255, 59, 0.1)', display: 'flex', 
           alignItems: 'center', justifyContent: 'center', 
-          color: 'var(--accent)', fontWeight: 'bold', fontSize: '48px'
+          color: 'var(--accent)', fontWeight: 'bold', fontSize: '48px',
+          boxShadow: '0 0 30px rgba(184, 255, 59, 0.2)'
         }}>
           {instructor.first_name?.[0]}
         </div>
@@ -66,7 +67,7 @@ const InstructorProfile = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
           {courses.map(course => (
             <Link key={course.id} to={`/courses/${course.id}`} style={{ textDecoration: 'none' }}>
-              <div className="card" style={{ padding: '0', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div className="glass-card" style={{ padding: '0', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ height: '160px', backgroundColor: 'var(--bg-tertiary)', position: 'relative' }}>
                   {course.thumbnail ? (
                     <img src={course.thumbnail} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

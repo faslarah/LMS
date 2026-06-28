@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getCourse, enrollCourse, toggleWishlist, submitReview, toggleLessonProgress, getDiscussions, createDiscussion } from '../api/courses';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import confetti from 'canvas-confetti';
 
 const CourseDetail = () => {
   const { id } = useParams();
@@ -46,6 +47,15 @@ const CourseDetail = () => {
     setEnrolling(true);
     try {
       await enrollCourse(id);
+      
+      // Trigger Confetti!
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#B8FF3B', '#ffffff', '#AFFF3F']
+      });
+
       const res = await getCourse(id);
       setCourse(res.data);
     } catch (err) {
@@ -137,7 +147,7 @@ const CourseDetail = () => {
   return (
     <div>
       {/* Hero Section */}
-      <div style={{ backgroundColor: 'var(--bg-secondary)', padding: '60px 20px', borderBottom: '1px solid var(--bg-tertiary)' }}>
+      <div style={{ background: 'radial-gradient(circle at 50% 0%, rgba(184, 255, 59, 0.05) 0%, rgba(5,8,22,1) 100%)', padding: '60px 20px', borderBottom: '1px solid rgba(184, 255, 59, 0.1)' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 500px' }}>
             <div style={{ color: 'var(--accent)', fontWeight: 'bold', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -160,7 +170,7 @@ const CourseDetail = () => {
           
           {/* Action Card */}
           <div style={{ flex: '0 1 350px', marginTop: '-20px' }}>
-            <div className="card" style={{ padding: '24px', position: 'sticky', top: '100px' }}>
+            <div className="glass-card animate-fade-in" style={{ padding: '24px', position: 'sticky', top: '100px', border: '1px solid rgba(184, 255, 59, 0.15)', boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
               {course.thumbnail && (
                 <img 
                   src={course.thumbnail} 
@@ -195,11 +205,13 @@ const CourseDetail = () => {
                 onClick={handleWishlist}
                 style={{
                   width: '100%',
-                  background: 'none', border: '1px solid var(--border-color)',
+                  background: course.is_wishlisted ? 'rgba(255, 71, 87, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+                  border: `1px solid ${course.is_wishlisted ? 'rgba(255, 71, 87, 0.3)' : 'rgba(255, 255, 255, 0.1)'}`,
                   color: course.is_wishlisted ? '#ff4757' : 'var(--text-primary)',
-                  padding: '12px', borderRadius: '4px', cursor: 'pointer',
-                  fontWeight: 'bold', marginBottom: '16px',
-                  display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px'
+                  padding: '14px', borderRadius: '8px', cursor: 'pointer',
+                  fontWeight: '600', marginBottom: '16px',
+                  display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px',
+                  transition: 'all 0.3s ease'
                 }}
               >
                 {course.is_wishlisted ? '♥ Remove from Wishlist' : '♡ Add to Wishlist'}
@@ -224,7 +236,7 @@ const CourseDetail = () => {
           <h2 style={{ fontSize: '28px', marginBottom: '24px' }}>Course Curriculum</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {course.sections?.map((section, idx) => (
-              <div key={section.id} className="card" style={{ padding: '20px' }}>
+              <div key={section.id} className="glass-card" style={{ padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <h3 style={{ fontSize: '20px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
                   <span>Section {idx + 1}: {section.title}</span>
                   <span style={{ color: 'var(--text-secondary)', fontSize: '16px', fontWeight: 'normal' }}>
@@ -238,9 +250,11 @@ const CourseDetail = () => {
                         display: 'flex', 
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        padding: '12px',
-                        backgroundColor: 'var(--bg-primary)',
-                        borderRadius: '4px'
+                        padding: '16px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.04)',
+                        borderRadius: '8px',
+                        transition: 'background 0.3s ease'
                       }}>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                           <span style={{ color: 'var(--text-secondary)' }}>{lIdx + 1}.</span>
@@ -284,7 +298,7 @@ const CourseDetail = () => {
         <h2 style={{ fontSize: '28px', marginBottom: '24px' }}>Q&A Discussions</h2>
         
         {user ? (
-          <form onSubmit={handleCreateDiscussion} className="card" style={{ padding: '24px', marginBottom: '40px' }}>
+          <form onSubmit={handleCreateDiscussion} className="glass-card" style={{ padding: '24px', marginBottom: '40px' }}>
             <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>Ask a Question</h3>
             <div style={{ marginBottom: '16px' }}>
               <textarea 
@@ -298,7 +312,7 @@ const CourseDetail = () => {
             <button type="submit" className="btn-primary" disabled={!newDiscussion.trim()}>Post Question</button>
           </form>
         ) : (
-          <div className="card" style={{ padding: '24px', marginBottom: '40px', textAlign: 'center' }}>
+          <div className="glass-card" style={{ padding: '24px', marginBottom: '40px', textAlign: 'center' }}>
             <p style={{ color: 'var(--text-secondary)' }}>Please log in to participate in the discussion.</p>
           </div>
         )}
@@ -308,7 +322,7 @@ const CourseDetail = () => {
             <p style={{ color: 'var(--text-secondary)' }}>No discussions yet. Be the first to ask!</p>
           ) : (
             discussions.map((disc) => (
-              <div key={disc.id} className="card" style={{ padding: '24px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--bg-tertiary)' }}>
+              <div key={disc.id} className="glass-card" style={{ padding: '24px', backgroundColor: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'var(--accent)' }}>
                     {disc.user_name.charAt(0)}
@@ -372,7 +386,7 @@ const CourseDetail = () => {
         <h2 style={{ fontSize: '28px', marginBottom: '24px' }}>Reviews</h2>
         
         {user && course.is_enrolled && (
-          <form onSubmit={handleSubmitReview} className="card" style={{ padding: '24px', marginBottom: '40px' }}>
+          <form onSubmit={handleSubmitReview} className="glass-card" style={{ padding: '24px', marginBottom: '40px' }}>
             <h3 style={{ marginBottom: '16px' }}>Leave a Review</h3>
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Rating</label>

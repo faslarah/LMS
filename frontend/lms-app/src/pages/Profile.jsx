@@ -39,9 +39,9 @@ const Profile = () => {
   return (
     <div style={{ padding: '60px 20px', maxWidth: '600px', margin: '0 auto' }}>
       <h1 style={{ fontSize: '36px', marginBottom: '32px' }}>Edit Profile</h1>
-      <form onSubmit={handleSubmit} className="card" style={{ padding: '32px' }}>
+      <form onSubmit={handleSubmit} className="glass-card animate-fade-in" style={{ padding: '40px', border: '1px solid rgba(184, 255, 59, 0.15)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
         <div style={{ marginBottom: '24px' }}>
-          <label className="label">First Name</label>
+          <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>First Name</label>
           <input
             type="text"
             className="input-field"
@@ -51,7 +51,7 @@ const Profile = () => {
           />
         </div>
         <div style={{ marginBottom: '24px' }}>
-          <label className="label">Last Name</label>
+          <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Last Name</label>
           <input
             type="text"
             className="input-field"
@@ -60,24 +60,24 @@ const Profile = () => {
             required
           />
         </div>
-        <div style={{ marginBottom: '24px' }}>
-          <label className="label">Email (Read Only)</label>
+        <div style={{ marginBottom: '32px' }}>
+          <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Email (Read Only)</label>
           <input
             type="email"
             className="input-field"
             value={user?.email || ''}
             disabled
-            style={{ opacity: 0.5, cursor: 'not-allowed' }}
+            style={{ opacity: 0.5, cursor: 'not-allowed', backgroundColor: 'rgba(255,255,255,0.01)' }}
           />
         </div>
         
         {message && (
-          <div style={{ marginBottom: '20px', padding: '12px', borderRadius: '4px', backgroundColor: message.includes('success') ? 'rgba(198, 241, 44, 0.1)' : 'rgba(255, 71, 87, 0.1)', color: message.includes('success') ? 'var(--accent)' : '#ff4757', border: `1px solid ${message.includes('success') ? 'var(--accent)' : '#ff4757'}` }}>
+          <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '8px', backgroundColor: message.includes('success') ? 'rgba(184, 255, 59, 0.1)' : 'rgba(255, 71, 87, 0.1)', color: message.includes('success') ? 'var(--accent)' : '#ff4757', border: `1px solid ${message.includes('success') ? 'rgba(184, 255, 59, 0.3)' : 'rgba(255, 71, 87, 0.3)'}`, textAlign: 'center', fontWeight: '500' }}>
             {message}
           </div>
         )}
 
-        <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>
+        <button type="submit" className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: '16px' }} disabled={loading}>
           {loading ? 'Saving...' : 'Save Profile'}
         </button>
       </form>

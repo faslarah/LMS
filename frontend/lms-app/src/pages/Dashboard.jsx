@@ -88,18 +88,18 @@ const Dashboard = () => {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>Loading your dashboard...</div>
       ) : activeTab === 'learning' && enrollments.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <h3 style={{ fontSize: '24px', marginBottom: '16px' }}>You haven't enrolled in any courses yet.</h3>
+        <div className="glass-card" style={{ textAlign: 'center', padding: '60px 20px', borderRadius: '24px', border: '1px solid rgba(184, 255, 59, 0.1)' }}>
+          <h3 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--text-primary)' }}>You haven't enrolled in any courses yet.</h3>
           <button className="btn-primary" onClick={() => navigate('/courses')}>Browse Courses</button>
         </div>
       ) : activeTab === 'wishlist' && wishlists.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <h3 style={{ fontSize: '24px', marginBottom: '16px' }}>Your wishlist is empty.</h3>
+        <div className="glass-card" style={{ textAlign: 'center', padding: '60px 20px', borderRadius: '24px', border: '1px solid rgba(184, 255, 59, 0.1)' }}>
+          <h3 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--text-primary)' }}>Your wishlist is empty.</h3>
           <button className="btn-primary" onClick={() => navigate('/courses')}>Browse Courses</button>
         </div>
       ) : activeTab === 'courses' && myCourses.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <h3 style={{ fontSize: '24px', marginBottom: '16px' }}>You haven't created any courses yet.</h3>
+        <div className="glass-card" style={{ textAlign: 'center', padding: '60px 20px', borderRadius: '24px', border: '1px solid rgba(184, 255, 59, 0.1)' }}>
+          <h3 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--text-primary)' }}>You haven't created any courses yet.</h3>
           <button className="btn-primary" onClick={() => navigate('/courses/create')}>Create a Course</button>
         </div>
       ) : (
@@ -108,52 +108,54 @@ const Dashboard = () => {
           gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
           gap: '24px' 
         }}>
-          {activeTab === 'learning' && enrollments.map(({ id, course, progress_percentage }) => (
-            <div key={id} className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ height: '160px', backgroundColor: 'var(--bg-tertiary)', backgroundImage: course.thumbnail ? `url(${course.thumbnail})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-              <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <h3 style={{ fontSize: '20px', marginBottom: '8px', lineHeight: 1.3 }}>{course.title}</h3>
+          {activeTab === 'learning' && enrollments.map(({ id, course, progress_percentage }, idx) => (
+            <div key={id} className="glass-card animate-fade-in" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', animationDelay: `${idx * 0.05}s`, cursor: 'pointer' }} onClick={() => navigate(`/courses/${course.id}`)}>
+              <div style={{ height: '180px', backgroundColor: 'var(--bg-tertiary)', backgroundImage: course.thumbnail ? `url(${course.thumbnail})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', transition: 'transform 0.5s', ':hover': { transform: 'scale(1.05)' } }}></div>
+              <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ fontSize: '20px', marginBottom: '8px', lineHeight: 1.4, color: 'var(--text-primary)', fontWeight: '600' }}>{course.title}</h3>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px' }}>{course.instructor_name}</p>
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px', fontWeight: 'bold' }}>
+                <div style={{ marginBottom: '24px', marginTop: 'auto' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: '600' }}>
                     <span>Progress</span>
                     <span style={{ color: progress_percentage === 100 ? 'var(--accent)' : 'inherit' }}>{progress_percentage}%</span>
                   </div>
-                  <div style={{ width: '100%', height: '6px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ width: `${progress_percentage}%`, height: '100%', backgroundColor: 'var(--accent)', transition: 'width 0.3s ease' }}></div>
+                  <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${progress_percentage}%`, height: '100%', backgroundColor: 'var(--accent)', transition: 'width 0.5s ease', boxShadow: '0 0 10px var(--accent)' }}></div>
                   </div>
                 </div>
-                <div style={{ marginTop: 'auto' }}>
-                  <button className="btn-primary" style={{ width: '100%' }} onClick={() => navigate(`/courses/${course.id}`)}>Continue Learning</button>
+                <div style={{ display: 'flex' }}>
+                  <button className="btn-primary" style={{ width: '100%', padding: '12px' }} onClick={(e) => { e.stopPropagation(); navigate(`/courses/${course.id}`); }}>Continue Learning</button>
                 </div>
               </div>
             </div>
           ))}
 
-          {activeTab === 'wishlist' && wishlists.map(({ id, course_detail: course }) => (
-            <div key={id} className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ height: '160px', backgroundColor: 'var(--bg-tertiary)', backgroundImage: course.thumbnail ? `url(${course.thumbnail})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-              <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <h3 style={{ fontSize: '20px', marginBottom: '8px', lineHeight: 1.3 }}>{course.title}</h3>
+          {activeTab === 'wishlist' && wishlists.map(({ id, course_detail: course }, idx) => (
+            <div key={id} className="glass-card animate-fade-in" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', animationDelay: `${idx * 0.05}s`, cursor: 'pointer' }} onClick={() => navigate(`/courses/${course.id}`)}>
+              <div style={{ height: '180px', backgroundColor: 'var(--bg-tertiary)', backgroundImage: course.thumbnail ? `url(${course.thumbnail})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+              <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ fontSize: '20px', marginBottom: '8px', lineHeight: 1.4, color: 'var(--text-primary)', fontWeight: '600' }}>{course.title}</h3>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px' }}>{course.instructor_name}</p>
                 <div style={{ marginTop: 'auto' }}>
-                  <button className="btn-primary" style={{ width: '100%' }} onClick={() => navigate(`/courses/${course.id}`)}>View Details</button>
+                  <button className="btn-primary" style={{ width: '100%', padding: '12px' }} onClick={(e) => { e.stopPropagation(); navigate(`/courses/${course.id}`); }}>View Details</button>
                 </div>
               </div>
             </div>
           ))}
 
-          {activeTab === 'courses' && myCourses.map((course) => (
-            <div key={course.id} className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <h3 style={{ fontSize: '20px', marginBottom: '8px', lineHeight: 1.3 }}>{course.title}</h3>
-                <div style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{course.is_published ? <span style={{color: 'var(--accent)'}}>Published</span> : 'Draft'}</span>
-                  <span>{course.total_enrollments} Student(s)</span>
+          {activeTab === 'courses' && myCourses.map((course, idx) => (
+            <div key={course.id} className="glass-card animate-fade-in" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', animationDelay: `${idx * 0.05}s` }}>
+              <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ fontSize: '20px', marginBottom: '16px', lineHeight: 1.4, color: 'var(--text-primary)', fontWeight: '600' }}>{course.title}</h3>
+                <div style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ padding: '4px 12px', borderRadius: '4px', background: course.is_published ? 'rgba(184, 255, 59, 0.1)' : 'rgba(255, 255, 255, 0.1)', color: course.is_published ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: '600', fontSize: '12px' }}>
+                    {course.is_published ? 'Published' : 'Draft'}
+                  </span>
+                  <span style={{ fontWeight: '500' }}>{course.total_enrollments} Student(s)</span>
                 </div>
-                <div style={{ marginTop: 'auto', display: 'flex', gap: '10px' }}>
-                  <button className="btn-primary" style={{ flex: 1, padding: '8px' }} onClick={() => navigate(`/courses/${course.id}`)}>View</button>
-                  <button className="btn-secondary" style={{ flex: 1, padding: '8px' }} onClick={() => navigate(`/courses/${course.id}/manage`)}>Edit</button>
+                <div style={{ marginTop: 'auto', display: 'flex', gap: '12px' }}>
+                  <button className="btn-secondary" style={{ flex: 1, padding: '10px' }} onClick={() => navigate(`/courses/${course.id}`)}>View</button>
+                  <button className="btn-primary" style={{ flex: 1, padding: '10px' }} onClick={() => navigate(`/courses/${course.id}/manage`)}>Edit</button>
                 </div>
               </div>
             </div>

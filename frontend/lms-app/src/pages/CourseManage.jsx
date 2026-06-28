@@ -165,21 +165,21 @@ const CourseManage = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* List Sections */}
         {course.sections?.map((section) => (
-          <div key={section.id} className="card">
+          <div key={section.id} className="glass-card" style={{ padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <h3 style={{ fontSize: '20px', marginBottom: '16px' }}>Section {section.order + 1}: {section.title}</h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
               {section.lessons?.map((lesson) => (
-                <div key={lesson.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 16px', background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+                <div key={lesson.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)', borderRadius: '8px' }}>
                   <span style={{ color: 'var(--text-primary)' }}>Lesson {lesson.order + 1}: {lesson.title}</span>
-                  {lesson.video && <span style={{ background: 'rgba(198, 241, 44, 0.1)', color: 'var(--accent)', padding: '2px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600', border: '1px solid var(--accent)' }}>Has Video</span>}
+                  {lesson.video && <span style={{ background: 'rgba(198, 241, 44, 0.1)', color: 'var(--accent)', padding: '2px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600', border: '1px solid rgba(198, 241, 44, 0.2)' }}>Has Video</span>}
                 </div>
               ))}
             </div>
 
             {/* Add Lesson Form */}
             {activeSectionId === section.id ? (
-              <form onSubmit={(e) => handleAddLesson(section.id, e)} style={{ background: 'var(--bg-tertiary)', padding: '20px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+              <form onSubmit={(e) => handleAddLesson(section.id, e)} style={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', padding: '20px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
                 <input 
                   className="input-field" 
                   placeholder="Lesson Title" 
@@ -188,7 +188,7 @@ const CourseManage = () => {
                   required 
                   style={{ marginBottom: '16px' }}
                 />
-                <label className="label">Upload Video</label>
+                <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Upload Video</label>
                 <input 
                   type="file" 
                   accept="video/*" 
@@ -202,7 +202,7 @@ const CourseManage = () => {
                 </div>
               </form>
             ) : (
-              <button onClick={() => setActiveSectionId(section.id)} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px dashed var(--border-focus)', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '500', transition: 'border-color 0.2s, color 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--text-primary)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-focus)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+              <button onClick={() => setActiveSectionId(section.id)} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px dashed rgba(255, 255, 255, 0.2)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '500', transition: 'border-color 0.2s, color 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--text-primary)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
                 + Add Lesson
               </button>
             )}
@@ -210,7 +210,7 @@ const CourseManage = () => {
         ))}
 
         {/* Add Section Form */}
-        <div style={{ background: 'transparent', border: '1px dashed var(--border-focus)', borderRadius: 'var(--radius-md)', padding: '24px' }}>
+        <div style={{ background: 'transparent', border: '1px dashed rgba(255, 255, 255, 0.2)', borderRadius: '12px', padding: '24px' }}>
           <form onSubmit={handleAddSection} style={{ display: 'flex', gap: '12px' }}>
             <input 
               className="input-field" 
@@ -224,32 +224,32 @@ const CourseManage = () => {
         </div>
       </div>
       ) : (
-        <form onSubmit={handleSaveDetails} className="card">
+        <form onSubmit={handleSaveDetails} className="glass-card" style={{ padding: '40px', border: '1px solid rgba(184, 255, 59, 0.15)' }}>
           <h3 style={{ fontSize: '24px', marginBottom: '24px' }}>Edit Course Details</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
             <div>
-              <label className="label">Course Title</label>
+              <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Course Title</label>
               <input className="input-field" name="title" value={formData.title} onChange={handleChangeDetails} required />
             </div>
             <div>
-              <label className="label">Subtitle</label>
+              <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Subtitle</label>
               <input className="input-field" name="subtitle" value={formData.subtitle} onChange={handleChangeDetails} />
             </div>
           </div>
           <div style={{ marginBottom: '20px' }}>
-            <label className="label">Description</label>
+            <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Description</label>
             <textarea className="input-field" style={{ height: '100px', resize: 'vertical' }} name="description" value={formData.description} onChange={handleChangeDetails} required />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
             <div>
-              <label className="label">Category</label>
+              <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Category</label>
               <select className="input-field" name="category" value={formData.category} onChange={handleChangeDetails} required>
                 {categories.length === 0 && <option value="">No categories available</option>}
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="label">Difficulty</label>
+              <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Difficulty</label>
               <select className="input-field" name="difficulty" value={formData.difficulty} onChange={handleChangeDetails}>
                 <option value="beginner">Beginner</option>
                 <option value="intermediate">Intermediate</option>
@@ -259,29 +259,29 @@ const CourseManage = () => {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
             <div>
-              <label className="label">Language</label>
+              <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Language</label>
               <input className="input-field" name="language" value={formData.language} onChange={handleChangeDetails} />
             </div>
             <div>
-              <label className="label">Price (USD)</label>
+              <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Price (USD)</label>
               <input className="input-field" name="price" type="number" step="0.01" min="0" value={formData.price} onChange={handleChangeDetails} />
             </div>
           </div>
           <div style={{ marginBottom: '20px' }}>
-            <label className="label">Requirements (One per line)</label>
+            <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Requirements (One per line)</label>
             <textarea className="input-field" style={{ height: '60px', resize: 'vertical' }} name="requirements" value={formData.requirements} onChange={handleChangeDetails} />
           </div>
           <div style={{ marginBottom: '24px' }}>
-            <label className="label">Learning Outcomes (One per line)</label>
+            <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Learning Outcomes (One per line)</label>
             <textarea className="input-field" style={{ height: '60px', resize: 'vertical' }} name="learning_outcomes" value={formData.learning_outcomes} onChange={handleChangeDetails} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px', background: 'var(--bg-primary)', padding: '20px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px', background: 'rgba(255,255,255,0.02)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
              <div>
-              <label className="label">Thumbnail Image (Upload new to replace)</label>
+              <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Thumbnail Image (Upload new to replace)</label>
               <input type="file" className="input-field" name="thumbnail" accept="image/*" onChange={handleChangeDetails} style={{ padding: '9px' }} />
              </div>
              <div>
-              <label className="label">Preview Video (Upload new to replace)</label>
+              <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Preview Video (Upload new to replace)</label>
               <input type="file" className="input-field" name="preview_video" accept="video/*" onChange={handleChangeDetails} style={{ padding: '9px' }} />
              </div>
           </div>

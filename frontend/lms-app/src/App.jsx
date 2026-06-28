@@ -21,6 +21,7 @@ import Navbar from './components/Navbar';
 import Layout from './components/Layout';
 
 import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 import Landing from './pages/Landing';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
           {/* Authenticated Routes with Sidebar Layout */}
           <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>} />
+          <Route path="/settings" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
           <Route path="/courses" element={<PrivateRoute><Layout><CourseList /></Layout></PrivateRoute>} />
           <Route path="/courses/:id" element={<PrivateRoute><Layout><CourseDetail /></Layout></PrivateRoute>} />
           <Route path="/instructors" element={<PrivateRoute><Layout><InstructorsList /></Layout></PrivateRoute>} />
