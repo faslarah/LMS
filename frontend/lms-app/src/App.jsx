@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import InstructorRoute from './components/InstructorRoute';
 import AdminRoute from './components/AdminRoute';
+import NonAdminRoute from './components/NonAdminRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import CourseList from './pages/CourseList';
@@ -15,14 +16,27 @@ import InstructorsList from './pages/InstructorsList';
 import InstructorProfile from './pages/InstructorProfile';
 import AdminUsers from './pages/AdminUsers';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminHub from './pages/AdminHub';
 import AdminCourses from './pages/AdminCourses';
 import AdminCategories from './pages/AdminCategories';
+import AdminSettings from './pages/AdminSettings';
 import Navbar from './components/Navbar';
 import Layout from './components/Layout';
+import AdminLayout from './components/AdminLayout';
 
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Landing from './pages/Landing';
+import ApplyInstructor from './pages/ApplyInstructor';
+import AdminInstructorApplications from './pages/AdminInstructorApplications';
+
+function RoleBasedRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Loading...</div>;
+  if (!user) return <Navigate to="/login" />;
+  if (user.role === 'admin') return <Navigate to="/admin" replace />;
+  return <Navigate to="/courses" replace />;
+}
 
 function App() {
   return (
@@ -35,25 +49,28 @@ function App() {
           <Route path="/register" element={<><Navbar /><Register /></>} />
           
           {/* Authenticated Routes with Sidebar Layout */}
-          <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
+          <Route path="/dashboard" element={<NonAdminRoute><Layout><Dashboard /></Layout></NonAdminRoute>} />
           <Route path="/profile" element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
-          <Route path="/courses" element={<PrivateRoute><Layout><CourseList /></Layout></PrivateRoute>} />
-          <Route path="/courses/:id" element={<PrivateRoute><Layout><CourseDetail /></Layout></PrivateRoute>} />
-          <Route path="/instructors" element={<PrivateRoute><Layout><InstructorsList /></Layout></PrivateRoute>} />
-          <Route path="/instructors/:id" element={<PrivateRoute><Layout><InstructorProfile /></Layout></PrivateRoute>} />
+          <Route path="/courses" element={<NonAdminRoute><Layout><CourseList /></Layout></NonAdminRoute>} />
+          <Route path="/courses/:id" element={<NonAdminRoute><Layout><CourseDetail /></Layout></NonAdminRoute>} />
+          <Route path="/instructors" element={<NonAdminRoute><Layout><InstructorsList /></Layout></NonAdminRoute>} />
+          <Route path="/instructors/:id" element={<NonAdminRoute><Layout><InstructorProfile /></Layout></NonAdminRoute>} />
+          <Route path="/apply-instructor" element={<NonAdminRoute><Layout><ApplyInstructor /></Layout></NonAdminRoute>} />
           
           {/* Instructor Routes */}
           <Route path="/courses/create" element={<InstructorRoute><Layout><CourseCreate /></Layout></InstructorRoute>} />
           <Route path="/courses/:id/manage" element={<InstructorRoute><Layout><CourseManage /></Layout></InstructorRoute>} />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminRoute><Layout><AdminDashboard /></Layout></AdminRoute>} />
-          <Route path="/admin/users" element={<AdminRoute><Layout><AdminUsers /></Layout></AdminRoute>} />
-          <Route path="/admin/courses" element={<AdminRoute><Layout><AdminCourses /></Layout></AdminRoute>} />
-          <Route path="/admin/categories" element={<AdminRoute><Layout><AdminCategories /></Layout></AdminRoute>} />
+          {/* Admin Routes with AdminLayout (No Sidebar) */}
+          <Route path="/admin" element={<AdminRoute><AdminLayout><AdminHub /></AdminLayout></AdminRoute>} />
+          <Route path="/admin/dashboard" element={<AdminRoute><AdminLayout><AdminDashboard /></AdminLayout></AdminRoute>} />
+          <Route path="/admin/courses" element={<AdminRoute><AdminLayout><AdminCourses /></AdminLayout></AdminRoute>} />
+          <Route path="/admin/users" element={<AdminRoute><AdminLayout><AdminUsers /></AdminLayout></AdminRoute>} />
+          <Route path="/admin/applications" element={<AdminRoute><AdminLayout><AdminInstructorApplications /></AdminLayout></AdminRoute>} />
+          <Route path="/admin/settings" element={<AdminRoute><AdminLayout><AdminSettings /></AdminLayout></AdminRoute>} />
           
-          <Route path="*" element={<Navigate to="/courses" />} />
+          <Route path="*" element={<RoleBasedRedirect />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -213,51 +213,55 @@ const Sidebar = () => {
       {/* Navigation Links */}
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '24px', paddingTop: '16px' }} className="sidebar-scroll">
         
-        {renderSectionLabel('MAIN')}
-        {renderLink('/dashboard', <IconLayoutDashboard />, 'Dashboard')}
-        {renderLink('/courses', <IconLibrary />, 'All Courses')}
-        {renderLink('/explore', <IconCompass />, 'Explore')}
-
-        {user?.role === 'instructor' && (
-          <>
-            {renderSectionLabel('INSTRUCTOR')}
-            {renderLink('/instructor/courses', <IconBriefcase />, 'My Courses')}
-            {renderLink('/courses/create', <IconLibrary />, 'Create Course')}
-          </>
-        )}
-
-        {user?.role === 'student' && (
-          <>
-            {renderSectionLabel('LEARNING')}
-            {renderLink('/student/learning', <IconBookOpen />, 'My Learning')}
-            {renderLink('/enrollments', <IconClipboardList />, 'My Enrollments')}
-            {renderLink('/certificates', <IconAward />, 'Certificates')}
-            {renderLink('/progress', <IconTrendingUp />, 'Progress')}
-          </>
-        )}
-
-        {(user?.role === 'student' || user?.role === 'instructor') && (
-          <>
-            {renderSectionLabel('COMMUNITY')}
-            {renderLink('/instructors', <IconUsers />, 'Instructors')}
-            {renderLink('/discussions', <IconMessageSquare />, 'Discussions')}
-            {renderLink('/announcements', <IconBell />, 'Announcements')}
-          </>
-        )}
-
-        {user?.role === 'admin' && (
+        {user?.role === 'admin' ? (
           <>
             {renderSectionLabel('ADMIN')}
             {renderLink('/admin', <IconLayoutDashboard />, 'Dashboard')}
+            {renderLink('/admin/applications', <IconBriefcase />, 'Instructor Applications')}
             {renderLink('/admin/courses', <IconLibrary />, 'Manage Courses')}
-            {renderLink('/admin/categories', <IconFolder />, 'Categories')}
             {renderLink('/admin/users', <IconShield />, 'Manage Users')}
+            {renderLink('/admin/settings', <IconSettings />, 'Settings')}
+          </>
+        ) : (
+          <>
+            {renderSectionLabel('MAIN')}
+            {renderLink('/dashboard', <IconLayoutDashboard />, 'Dashboard')}
+            {renderLink('/courses', <IconLibrary />, 'All Courses')}
+            {renderLink('/explore', <IconCompass />, 'Explore')}
+
+            {user?.role === 'instructor' && (
+              <>
+                {renderSectionLabel('INSTRUCTOR')}
+                {renderLink('/instructor/courses', <IconBriefcase />, 'My Courses')}
+                {renderLink('/courses/create', <IconLibrary />, 'Create Course')}
+              </>
+            )}
+
+            {user?.role === 'student' && (
+              <>
+                {renderSectionLabel('LEARNING')}
+                {renderLink('/student/learning', <IconBookOpen />, 'My Learning')}
+                {renderLink('/enrollments', <IconClipboardList />, 'My Enrollments')}
+                {renderLink('/certificates', <IconAward />, 'Certificates')}
+                {renderLink('/progress', <IconTrendingUp />, 'Progress')}
+                {renderLink('/apply-instructor', <IconBriefcase />, 'Become an Instructor')}
+              </>
+            )}
+
+            {(user?.role === 'student' || user?.role === 'instructor') && (
+              <>
+                {renderSectionLabel('COMMUNITY')}
+                {renderLink('/instructors', <IconUsers />, 'Instructors')}
+                {renderLink('/discussions', <IconMessageSquare />, 'Discussions')}
+                {renderLink('/announcements', <IconBell />, 'Announcements')}
+              </>
+            )}
+
+            {renderSectionLabel('ACCOUNT')}
+            {renderLink('/settings', <IconSettings />, 'Settings')}
+            {renderLink('/help', <IconHelpCircle />, 'Help & Support')}
           </>
         )}
-
-        {renderSectionLabel('ACCOUNT')}
-        {renderLink('/settings', <IconSettings />, 'Settings')}
-        {renderLink('/help', <IconHelpCircle />, 'Help & Support')}
       </div>
 
       {/* User Profile Bottom Area */}

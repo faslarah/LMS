@@ -5,7 +5,7 @@ const IconEdit = ({ size = 16, ...props }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
 );
 
-const AdminCategories = () => {
+const AdminCategories = ({ isIntegrated = false }) => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newCategoryName, setNewCategoryName] = useState('');
@@ -30,8 +30,8 @@ const AdminCategories = () => {
 
     const generateSlug = (text) => {
         return text.toLowerCase()
-                   .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphen
-                   .replace(/(^-|-$)+/g, ''); // Remove leading/trailing hyphens
+           .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphen
+           .replace(/(^-|-$)+/g, ''); // Remove leading/trailing hyphens
     };
 
     const handleNameChange = (e) => {
@@ -75,7 +75,7 @@ const AdminCategories = () => {
 
     return (
         <div>
-            <h1 style={{ marginBottom: '24px' }}>Manage Categories</h1>
+            {!isIntegrated && <h1 style={{ marginBottom: '24px' }}>Manage Categories</h1>}
 
             <div className="card" style={{ marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Add New Category</h2>

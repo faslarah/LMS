@@ -2,7 +2,8 @@ import API from './axios';
 
 export const getUsers = (params) => API.get('/auth/admin/users/', { params });
 export const updateUserRole = (id, role) => API.patch(`/auth/admin/users/${id}/`, { role });
-export const updateUserStatus = (id, is_active) => API.patch(`/auth/admin/users/${id}/`, { is_active });
+export const updateUserStatus = (id, action) => API.patch(`/auth/admin/users/${id}/`, { action });
+export const updateInstructorApplicationStatus = (id, status) => API.patch(`/auth/admin/applications/${id}/`, { status });
 
 export const getAdminStats = () => API.get('/auth/admin/stats/');
 
