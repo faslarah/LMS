@@ -12,8 +12,10 @@ import CourseManage from './pages/CourseManage';
 
 import Dashboard from './pages/Dashboard';
 import CourseDetail from './pages/CourseDetail';
+import CoursePlayer from './pages/CoursePlayer';
 import InstructorsList from './pages/InstructorsList';
 import InstructorProfile from './pages/InstructorProfile';
+import MyEnrollments from './pages/MyEnrollments';
 import AdminUsers from './pages/AdminUsers';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminHub from './pages/AdminHub';
@@ -29,6 +31,8 @@ import Settings from './pages/Settings';
 import Landing from './pages/Landing';
 import ApplyInstructor from './pages/ApplyInstructor';
 import AdminInstructorApplications from './pages/AdminInstructorApplications';
+import Certificate from './pages/Certificate';
+import MyCertificates from './pages/MyCertificates';
 
 function RoleBasedRedirect() {
   const { user, loading } = useAuth();
@@ -54,9 +58,14 @@ function App() {
           <Route path="/settings" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
           <Route path="/courses" element={<NonAdminRoute><Layout><CourseList /></Layout></NonAdminRoute>} />
           <Route path="/courses/:id" element={<NonAdminRoute><Layout><CourseDetail /></Layout></NonAdminRoute>} />
+          <Route path="/courses/:id/learn" element={<PrivateRoute><Layout><CoursePlayer /></Layout></PrivateRoute>} />
+          <Route path="/enrollments" element={<NonAdminRoute><Layout><MyEnrollments /></Layout></NonAdminRoute>} />
           <Route path="/instructors" element={<NonAdminRoute><Layout><InstructorsList /></Layout></NonAdminRoute>} />
           <Route path="/instructors/:id" element={<NonAdminRoute><Layout><InstructorProfile /></Layout></NonAdminRoute>} />
           <Route path="/apply-instructor" element={<NonAdminRoute><Layout><ApplyInstructor /></Layout></NonAdminRoute>} />
+          
+          <Route path="/certificates" element={<PrivateRoute><Layout><MyCertificates /></Layout></PrivateRoute>} />
+          <Route path="/certificates/:certificateId" element={<PrivateRoute><Certificate /></PrivateRoute>} />
           
           {/* Instructor Routes */}
           <Route path="/courses/create" element={<InstructorRoute><Layout><CourseCreate /></Layout></InstructorRoute>} />

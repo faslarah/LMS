@@ -1,5 +1,9 @@
 from django.db import models
 from apps.accounts.models import User
+import os
+from django.utils import timezone
+from django.dispatch import receiver
+from django.db.models.signals import post_delete, pre_save
 
 
 class Category(models.Model):
@@ -48,37 +52,19 @@ class Course(models.Model):
 class Section(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='sections')
     title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    video_file = models.FileField(upload_to='section_videos/', blank=True, null=True)
+    video_url = models.URLField(max_length=500, blank=True, null=True)
+    duration = models.FloatField(default=0.0, help_text="Duration in seconds")
+    thumbnail = models.ImageField(upload_to='section_thumbnails/', blank=True, null=True)
     order = models.PositiveIntegerField(default=0)
-
+    created_at = models.DateTimeField(default=timezone.now)
+    
     class Meta:
         ordering = ['order']
 
     def __str__(self):
         return f"{self.course.title} - {self.title}"
-
-
-class Lesson(models.Model):
-    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='lessons')
-    title = models.CharField(max_length=200)
-    content = models.TextField(blank=True)
-    order = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['order']
-
-    def __str__(self):
-        return f"{self.section.title} - {self.title}"
-
-
-class Video(models.Model):
-    lesson = models.OneToOneField(Lesson, on_delete=models.CASCADE, related_name='video')
-    file = models.FileField(upload_to='lesson_videos/')
-    duration = models.FloatField(default=0.0, help_text="Duration in seconds")
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Video for {self.lesson.title}"
 
 
 class Enrollment(models.Model):
@@ -130,19 +116,19 @@ class Review(models.Model):
         return f"{self.student.first_name} - {self.course.title} ({self.rating}/5)"
 
 
-class LessonProgress(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson_progresses')
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='progresses')
+class SectionProgress(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='section_progresses')
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='progresses')
     is_completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('student', 'lesson')
+        unique_together = ('student', 'section')
 
 
 class Discussion(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='discussions')
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='discussions', null=True, blank=True)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='discussions', null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='discussions')
     content = models.TextField()
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
@@ -183,3 +169,39 @@ class QuizAttempt(models.Model):
 
     class Meta:
         unique_together = ('student', 'quiz')
+
+
+@receiver(post_delete, sender=Section)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    if instance.video_file:
+        if os.path.isfile(instance.video_file.path):
+            os.remove(instance.video_file.path)
+
+@receiver(pre_save, sender=Section)
+def auto_delete_file_on_change(sender, instance, **kwargs):
+    if not instance.pk:
+        return False
+
+    try:
+        old_file = Section.objects.get(pk=instance.pk).video_file
+    except Section.DoesNotExist:
+        return False
+
+    new_file = instance.video_file
+    if old_file and not old_file == new_file:
+        if os.path.isfile(old_file.path):
+            os.remove(old_file.path)
+
+import uuid
+
+class Certificate(models.Model):
+    certificate_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificates')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='certificates')
+    issued_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'course')
+
+    def __str__(self):
+        return f"Certificate {self.certificate_id} for {self.student.email} - {self.course.title}"

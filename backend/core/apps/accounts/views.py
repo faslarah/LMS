@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
-from .serializers import RegisterSerializer, LoginSerializer, UserProfileSerializer, AdminUserSerializer, InstructorApplicationSerializer
+from .serializers import RegisterSerializer, LoginSerializer, UserProfileSerializer, AdminUserSerializer, InstructorApplicationSerializer, PublicInstructorSerializer
 from .models import User, InstructorApplication
 from apps.courses.models import Course, Enrollment, Category
 
@@ -81,7 +81,7 @@ class InstructorListView(APIView):
 
     def get(self, request):
         instructors = User.objects.filter(role='instructor')
-        serializer = UserProfileSerializer(instructors, many=True)
+        serializer = PublicInstructorSerializer(instructors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class InstructorDetailView(APIView):
@@ -90,7 +90,7 @@ class InstructorDetailView(APIView):
     def get(self, request, pk):
         try:
             instructor = User.objects.get(pk=pk, role='instructor')
-            serializer = UserProfileSerializer(instructor)
+            serializer = PublicInstructorSerializer(instructor)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'error': 'Instructor not found'}, status=status.HTTP_404_NOT_FOUND)

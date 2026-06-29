@@ -2,11 +2,10 @@ from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Category, Course, Section, Lesson, Video, Enrollment, Wishlist, Review, LessonProgress
+from .models import Category, Course, Section, Enrollment, Wishlist, Review, SectionProgress, Discussion, Certificate
 from .serializers import (
     CategorySerializer, CourseSerializer, SectionSerializer,
-    LessonSerializer, VideoSerializer, EnrollmentSerializer,
-    WishlistSerializer, ReviewSerializer, DiscussionSerializer
+    EnrollmentSerializer, WishlistSerializer, ReviewSerializer, DiscussionSerializer, CertificateSerializer
 )
 
 
@@ -20,6 +19,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return request.user.is_authenticated and request.user.role == 'admin'
+
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -71,15 +71,40 @@ class CourseViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def toggle_progress(self, request, pk=None):
         course = self.get_object()
-        lesson_id = request.data.get('lesson_id')
+        section_id = request.data.get('section_id')
         try:
-            lesson = Lesson.objects.get(id=lesson_id, section__course=course)
-            progress, created = LessonProgress.objects.get_or_create(student=request.user, lesson=lesson)
+            section = Section.objects.get(id=section_id, course=course)
+            progress, created = SectionProgress.objects.get_or_create(student=request.user, section=section)
             progress.is_completed = not progress.is_completed
             progress.save()
-            return Response({'message': 'Progress toggled', 'is_completed': progress.is_completed}, status=status.HTTP_200_OK)
-        except Lesson.DoesNotExist:
-            return Response({'error': 'Lesson not found in this course'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Check for course completion
+            total_sections = course.sections.count()
+            completed_sections = SectionProgress.objects.filter(
+                student=request.user, 
+                section__course=course, 
+                is_completed=True
+            ).count()
+            
+            is_course_completed = (total_sections > 0 and total_sections == completed_sections)
+            certificate_id = None
+            
+            if is_course_completed:
+                enrollment, _ = Enrollment.objects.get_or_create(student=request.user, course=course)
+                enrollment.completed = True
+                enrollment.save()
+                
+                cert, _ = Certificate.objects.get_or_create(student=request.user, course=course)
+                certificate_id = str(cert.certificate_id)
+
+            return Response({
+                'message': 'Progress toggled', 
+                'is_completed': progress.is_completed,
+                'is_course_completed': is_course_completed,
+                'certificate_id': certificate_id
+            }, status=status.HTTP_200_OK)
+        except Section.DoesNotExist:
+            return Response({'error': 'Section not found in this course'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class SectionViewSet(viewsets.ModelViewSet):
@@ -88,22 +113,6 @@ class SectionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Section.objects.filter(course__instructor=self.request.user)
-
-
-class LessonViewSet(viewsets.ModelViewSet):
-    serializer_class = LessonSerializer
-    permission_classes = [IsInstructorOrAdmin]
-
-    def get_queryset(self):
-        return Lesson.objects.filter(section__course__instructor=self.request.user)
-
-
-class VideoViewSet(viewsets.ModelViewSet):
-    serializer_class = VideoSerializer
-    permission_classes = [IsInstructorOrAdmin]
-
-    def get_queryset(self):
-        return Video.objects.filter(lesson__section__course__instructor=self.request.user)
 
 
 class EnrollmentViewSet(viewsets.ReadOnlyModelViewSet):
@@ -120,6 +129,15 @@ class WishlistViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Wishlist.objects.filter(student=self.request.user).order_by('-added_at')
+
+
+class CertificateViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CertificateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'certificate_id'
+
+    def get_queryset(self):
+        return Certificate.objects.filter(student=self.request.user)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -143,43 +161,22 @@ class DiscussionViewSet(viewsets.ModelViewSet):
         queryset = Discussion.objects.filter(parent=None)  # Only top-level discussions
         if 'course' in self.request.query_params:
             queryset = queryset.filter(course_id=self.request.query_params['course'])
-        if 'lesson' in self.request.query_params:
-            queryset = queryset.filter(lesson_id=self.request.query_params['lesson'])
+        if 'section' in self.request.query_params:
+            queryset = queryset.filter(section_id=self.request.query_params['section'])
         return queryset
 
     def perform_create(self, serializer):
-        course_id = self.request.data.get('course')
-        lesson_id = self.request.data.get('lesson')
-        parent_id = self.request.data.get('parent')
-        
-        course = Course.objects.get(id=course_id)
-        lesson = Lesson.objects.get(id=lesson_id) if lesson_id else None
-        parent = Discussion.objects.get(id=parent_id) if parent_id else None
-        
-        serializer.save(user=self.request.user, course=course, lesson=lesson, parent=parent)
+        serializer.save(user=self.request.user)
+
 
 class AdminCourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['category__slug', 'difficulty', 'instructor', 'is_published']
-    search_fields = ['title', 'subtitle']
-    
+    permission_classes = [permissions.IsAuthenticated] # Should be IsAdmin
+
     def get_permissions(self):
-        return [IsAdminOrReadOnly()] # Or just require admin? Yes, only Admin
-    
-    def get_permissions(self):
-        # We need an IsAdmin permission class here. Let's define it inside the viewset or just use the logic
-        class IsAdmin(permissions.BasePermission):
-            def has_permission(self, request, view):
-                return request.user.is_authenticated and request.user.role == 'admin'
-        return [IsAdmin()]
+        if self.request.user.role != 'admin':
+            return [permissions.IsAdminUser()]
+        return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
         return Course.objects.all()
-    
-    @action(detail=True, methods=['post'])
-    def toggle_publish(self, request, pk=None):
-        course = self.get_object()
-        course.is_published = not course.is_published
-        course.save()
-        return Response({'message': 'Status updated', 'is_published': course.is_published}, status=status.HTTP_200_OK)

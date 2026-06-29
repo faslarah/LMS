@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCourse, enrollCourse, toggleWishlist, submitReview, toggleLessonProgress, getDiscussions, createDiscussion } from '../api/courses';
+import { getCourse, enrollCourse, toggleWishlist, submitReview, toggleSectionProgress, getDiscussions, createDiscussion } from '../api/courses';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import confetti from 'canvas-confetti';
@@ -19,6 +19,11 @@ const CourseDetail = () => {
   const [discussions, setDiscussions] = useState([]);
   const [newDiscussion, setNewDiscussion] = useState("");
   const [replyText, setReplyText] = useState({});
+  const [expandedSections, setExpandedSections] = useState({});
+
+  const toggleSection = (sectionId) => {
+    setExpandedSections(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
+  };
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -78,16 +83,14 @@ const CourseDetail = () => {
     }
   };
 
-  const handleToggleProgress = async (lessonId) => {
+  const handleToggleProgress = async (sectionId) => {
     try {
-      const res = await toggleLessonProgress(id, lessonId);
+      const res = await toggleSectionProgress(id, sectionId);
       const updatedCourse = { ...course };
       updatedCourse.sections.forEach(sec => {
-        sec.lessons.forEach(les => {
-          if (les.id === lessonId) {
-            les.is_completed = res.data.is_completed;
-          }
-        });
+        if (sec.id === sectionId) {
+          sec.is_completed = res.data.is_completed;
+        }
       });
       setCourse(updatedCourse);
     } catch (err) {
@@ -182,13 +185,21 @@ const CourseDetail = () => {
                 {course.price > 0 ? `$${course.price}` : 'Free'}
               </div>
               
-              {course.is_enrolled ? (
+              {user && user.id === course.instructor ? (
                 <button 
                   className="btn-primary" 
                   style={{ width: '100%', marginBottom: '16px' }}
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate(`/courses/${course.id}/manage`)}
                 >
-                  Go to Dashboard
+                  Manage Course
+                </button>
+              ) : course.is_enrolled ? (
+                <button 
+                  className="btn-primary" 
+                  style={{ width: '100%', marginBottom: '16px' }}
+                  onClick={() => navigate(`/courses/${course.id}/learn`)}
+                >
+                  Continue Course
                 </button>
               ) : (
                 <button 
@@ -218,7 +229,7 @@ const CourseDetail = () => {
               </button>
               
               <div style={{ fontSize: '14px', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                Includes {course.total_lessons} lessons and full lifetime access.
+                Includes {course.sections?.length || 0} sections and full lifetime access.
               </div>
             </div>
           </div>
@@ -236,52 +247,50 @@ const CourseDetail = () => {
           <h2 style={{ fontSize: '28px', marginBottom: '24px' }}>Course Curriculum</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {course.sections?.map((section, idx) => (
-              <div key={section.id} className="glass-card" style={{ padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <h3 style={{ fontSize: '20px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Section {idx + 1}: {section.title}</span>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: '16px', fontWeight: 'normal' }}>
-                    {section.lessons?.length || 0} lessons
-                  </span>
-                </h3>
-                {section.lessons && section.lessons.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {section.lessons.map((lesson, lIdx) => (
-                      <div key={lesson.id} style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '16px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px solid rgba(255, 255, 255, 0.04)',
-                        borderRadius: '8px',
-                        transition: 'background 0.3s ease'
-                      }}>
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>{lIdx + 1}.</span>
-                          <span>{lesson.title}</span>
-                          {lesson.is_completed && <span style={{ color: 'var(--accent)', fontSize: '12px', padding: '2px 8px', background: 'rgba(198, 241, 44, 0.1)', borderRadius: '12px', fontWeight: 'bold' }}>✓ Done</span>}
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                          {lesson.video && (
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Video</span>
-                          )}
-                          {course.is_enrolled && (
-                            <button 
-                              onClick={() => handleToggleProgress(lesson.id)}
-                              style={{ 
-                                background: 'transparent', 
-                                border: `1px solid ${lesson.is_completed ? 'var(--text-secondary)' : 'var(--accent)'}`,
-                                color: lesson.is_completed ? 'var(--text-secondary)' : 'var(--accent)',
-                                padding: '4px 12px', borderRadius: '20px', cursor: 'pointer', fontSize: '12px',
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              {lesson.is_completed ? 'Undo' : 'Mark Complete'}
-                            </button>
-                          )}
-                        </div>
+              <div key={section.id} className="glass-card" style={{ border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                <div 
+                  onClick={() => toggleSection(section.id)}
+                  style={{ padding: '24px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.01)' }}
+                >
+                  <h3 style={{ fontSize: '20px', margin: 0 }}>
+                    Section {idx + 1}: {section.title}
+                  </h3>
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>
+                      {section.duration} min
+                    </span>
+                    <span style={{ color: 'var(--text-secondary)' }}>
+                      {expandedSections[section.id] ? '▲' : '▼'}
+                    </span>
+                  </div>
+                </div>
+
+                {expandedSections[section.id] && (
+                  <div style={{ padding: '0 24px 24px 24px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '16px' }}>
+                    {section.description && (
+                      <div style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px', whiteSpace: 'pre-wrap' }}>
+                        {section.description}
                       </div>
-                    ))}
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {section.is_completed && <span style={{ color: 'var(--accent)', fontSize: '12px', padding: '4px 10px', background: 'rgba(198, 241, 44, 0.1)', borderRadius: '12px', fontWeight: 'bold' }}>✓ Completed</span>}
+                      </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (course.is_enrolled) {
+                            navigate(`/courses/${course.id}/learn`);
+                          } else {
+                            alert("Please enroll in the course to start learning.");
+                          }
+                        }}
+                        className="btn-primary" 
+                        style={{ padding: '8px 24px', fontSize: '14px', fontWeight: 'bold' }}
+                      >
+                        Start Learning
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

@@ -237,6 +237,7 @@ const Sidebar = () => {
                 {renderLink('/enrollments', <IconClipboardList />, 'My Enrollments')}
                 {renderLink('/certificates', <IconAward />, 'Certificates')}
                 {renderLink('/progress', <IconTrendingUp />, 'Progress')}
+                {renderLink('/instructors', <IconUsers />, 'Instructors')}
               </>
             )}
 

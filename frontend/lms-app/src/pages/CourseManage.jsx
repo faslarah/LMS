@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCourse, createSection, createLesson, uploadVideo, updateCoursePartial, getCategories } from '../api/courses';
+import { getCourse, createSection, updateSection, deleteSection, updateCoursePartial, getCategories } from '../api/courses';
 
 const CourseManage = () => {
   const { id } = useParams();
@@ -14,11 +14,13 @@ const CourseManage = () => {
   const [files, setFiles] = useState({ thumbnail: null, preview_video: null });
   const [savingDetails, setSavingDetails] = useState(false);
 
-  // States for new section/lesson forms
-  const [newSectionTitle, setNewSectionTitle] = useState('');
-  const [newLessonTitle, setNewLessonTitle] = useState('');
-  const [activeSectionId, setActiveSectionId] = useState(null);
-  const [videoFile, setVideoFile] = useState(null);
+  // States for new section form
+  const [showAddSection, setShowAddSection] = useState(false);
+  const [sectionData, setSectionData] = useState({ title: '', description: '', duration: '' });
+  const [sectionFiles, setSectionFiles] = useState({ video_file: null, thumbnail: null });
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [savingSection, setSavingSection] = useState(false);
+  const [sectionUploadProgress, setSectionUploadProgress] = useState({});
 
   const fetchCourse = async () => {
     try {
@@ -88,42 +90,82 @@ const CourseManage = () => {
     }
   };
 
-  const handleAddSection = async (e) => {
-    e.preventDefault();
-    if (!newSectionTitle) return;
-    try {
-      await createSection({ course: id, title: newSectionTitle, order: course.sections?.length || 0 });
-      setNewSectionTitle('');
-      fetchCourse();
-    } catch (err) {
-      console.error("Failed to add section");
+  const handleSectionChange = (e) => {
+    const { name, value, type, files: fileList } = e.target;
+    if (type === 'file') {
+      setSectionFiles({ ...sectionFiles, [name]: fileList[0] });
+    } else {
+      setSectionData({ ...sectionData, [name]: value });
     }
   };
 
-  const handleAddLesson = async (sectionId, e) => {
+  const handleAddSection = async (e) => {
     e.preventDefault();
-    if (!newLessonTitle) return;
+    if (!sectionData.title) return;
+    setSavingSection(true);
     try {
-      const targetSection = course.sections.find(s => s.id === sectionId);
-      const res = await createLesson({ 
-        section: sectionId, 
-        title: newLessonTitle, 
-        order: targetSection.lessons?.length || 0 
-      });
+      const data = new FormData();
+      data.append('course', id);
+      data.append('title', sectionData.title);
+      data.append('description', sectionData.description);
+      data.append('duration', sectionData.duration || 0);
+      data.append('order', course.sections?.length || 0);
       
-      if (videoFile) {
-        const formData = new FormData();
-        formData.append('lesson', res.data.id);
-        formData.append('file', videoFile);
-        await uploadVideo(formData);
-      }
+      if (sectionFiles.video_file) data.append('video_file', sectionFiles.video_file);
+      if (sectionFiles.thumbnail) data.append('thumbnail', sectionFiles.thumbnail);
 
-      setNewLessonTitle('');
-      setVideoFile(null);
-      setActiveSectionId(null);
+      const config = (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(percentCompleted);
+      };
+
+      await createSection(data, config);
+      
+      setSectionData({ title: '', description: '', duration: '' });
+      setSectionFiles({ video_file: null, thumbnail: null });
+      setShowAddSection(false);
+      setUploadProgress(0);
       fetchCourse();
     } catch (err) {
-      console.error("Failed to add lesson", err);
+      console.error("Failed to add section");
+      setUploadProgress(0);
+    } finally {
+      setSavingSection(false);
+    }
+  };
+
+  const handleDeleteSection = async (sectionId) => {
+    if (!window.confirm("Are you sure you want to delete this section? This will delete the video permanently.")) return;
+    try {
+      await deleteSection(sectionId);
+      fetchCourse();
+    } catch (err) {
+      console.error("Failed to delete section", err);
+    }
+  };
+
+  const handleUpdateSectionVideo = async (sectionId, e) => {
+    e.preventDefault();
+    const file = e.target.elements.video.files[0];
+    if (!file) return;
+
+    const data = new FormData();
+    data.append('video_file', file);
+
+    try {
+      const config = (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setSectionUploadProgress(prev => ({ ...prev, [sectionId]: percentCompleted }));
+      };
+      
+      await updateSection(sectionId, data, config);
+      setSectionUploadProgress(prev => ({ ...prev, [sectionId]: 0 }));
+      alert("Video uploaded successfully!");
+      fetchCourse();
+    } catch (err) {
+      console.error("Failed to upload video", err);
+      alert("Failed to upload video. Please try again.");
+      setSectionUploadProgress(prev => ({ ...prev, [sectionId]: 0 }));
     }
   };
 
@@ -166,65 +208,103 @@ const CourseManage = () => {
         {/* List Sections */}
         {course.sections?.map((section) => (
           <div key={section.id} className="glass-card" style={{ padding: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <h3 style={{ fontSize: '20px', marginBottom: '16px' }}>Section {section.order + 1}: {section.title}</h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-              {section.lessons?.map((lesson) => (
-                <div key={lesson.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 16px', backgroundColor: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)', borderRadius: '8px' }}>
-                  <span style={{ color: 'var(--text-primary)' }}>Lesson {lesson.order + 1}: {lesson.title}</span>
-                  {lesson.video && <span style={{ background: 'rgba(198, 241, 44, 0.1)', color: 'var(--accent)', padding: '2px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: '600', border: '1px solid rgba(198, 241, 44, 0.2)' }}>Has Video</span>}
-                </div>
-              ))}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h3 style={{ fontSize: '20px', marginBottom: '8px' }}>Section {section.order + 1}: {section.title}</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '16px' }}>Duration: {section.duration} min</p>
+              </div>
+              <button onClick={() => handleDeleteSection(section.id)} className="btn-secondary" style={{ color: '#ff4757', borderColor: 'rgba(255,71,87,0.3)', padding: '6px 12px', fontSize: '12px' }}>Delete Section</button>
             </div>
-
-            {/* Add Lesson Form */}
-            {activeSectionId === section.id ? (
-              <form onSubmit={(e) => handleAddLesson(section.id, e)} style={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', padding: '20px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                <input 
-                  className="input-field" 
-                  placeholder="Lesson Title" 
-                  value={newLessonTitle} 
-                  onChange={(e) => setNewLessonTitle(e.target.value)} 
-                  required 
-                  style={{ marginBottom: '16px' }}
-                />
-                <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Upload Video</label>
-                <input 
-                  type="file" 
-                  accept="video/*" 
-                  onChange={(e) => setVideoFile(e.target.files[0])} 
-                  className="input-field"
-                  style={{ marginBottom: '20px', padding: '9px' }}
-                />
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                  <button type="button" onClick={() => setActiveSectionId(null)} className="btn-secondary">Cancel</button>
-                  <button type="submit" className="btn-primary">Save Lesson</button>
-                </div>
-              </form>
-            ) : (
-              <button onClick={() => setActiveSectionId(section.id)} style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px dashed rgba(255, 255, 255, 0.2)', borderRadius: '8px', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '500', transition: 'border-color 0.2s, color 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--text-primary)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
-                + Add Lesson
-              </button>
+            
+            {section.description && (
+              <div style={{ marginBottom: '16px', color: 'var(--text-secondary)', fontSize: '14px', whiteSpace: 'pre-wrap' }}>
+                {section.description}
+              </div>
             )}
+            
+            {section.video_file ? (
+              <div style={{ marginTop: '16px' }}>
+                <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Video Preview:</p>
+                <video src={section.video_file} controls poster={section.thumbnail} style={{ width: '100%', maxHeight: '400px', borderRadius: '8px', backgroundColor: '#000' }} />
+              </div>
+            ) : (
+              <p style={{ fontSize: '14px', color: '#ff4757', marginTop: '16px' }}>No video uploaded for this section.</p>
+            )}
+
+            <form onSubmit={(e) => handleUpdateSectionVideo(section.id, e)} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <label style={{ fontSize: '14px', fontWeight: '600' }}>{section.video_file ? 'Replace Video' : 'Upload Video'}</label>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <input type="file" name="video" accept="video/*" className="input-field" style={{ padding: '8px', flex: 1 }} required />
+                <button type="submit" className="btn-primary" style={{ padding: '8px 16px' }}>Upload</button>
+              </div>
+              {sectionUploadProgress[section.id] > 0 && (
+                <div style={{ width: '100%', backgroundColor: 'rgba(255,255,255,0.1)', height: '6px', borderRadius: '3px', overflow: 'hidden', marginTop: '8px' }}>
+                  <div style={{ width: `${sectionUploadProgress[section.id]}%`, backgroundColor: 'var(--accent)', height: '100%', transition: 'width 0.2s' }}></div>
+                </div>
+              )}
+            </form>
           </div>
         ))}
 
         {/* Add Section Form */}
-        <div style={{ background: 'transparent', border: '1px dashed rgba(255, 255, 255, 0.2)', borderRadius: '12px', padding: '24px' }}>
-          <form onSubmit={handleAddSection} style={{ display: 'flex', gap: '12px' }}>
-            <input 
-              className="input-field" 
-              placeholder="New Section Title" 
-              value={newSectionTitle} 
-              onChange={(e) => setNewSectionTitle(e.target.value)} 
-              required 
-            />
-            <button type="submit" className="btn-primary" style={{ whiteSpace: 'nowrap' }}>Add Section</button>
+        {showAddSection ? (
+          <form onSubmit={handleAddSection} className="glass-card" style={{ padding: '24px', border: '1px solid rgba(184, 255, 59, 0.3)' }}>
+            <h3 style={{ fontSize: '20px', marginBottom: '20px' }}>Add New Section</h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }}>
+              <div>
+                <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Section Title *</label>
+                <input className="input-field" name="title" value={sectionData.title} onChange={handleSectionChange} required />
+              </div>
+              <div>
+                <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Duration (minutes)</label>
+                <input type="number" step="0.1" min="0" className="input-field" name="duration" value={sectionData.duration} onChange={handleSectionChange} />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Description</label>
+              <textarea className="input-field" name="description" value={sectionData.description} onChange={handleSectionChange} style={{ height: '80px', resize: 'vertical' }} />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+              <div>
+                <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Video File</label>
+                <input type="file" accept="video/*" name="video_file" onChange={handleSectionChange} className="input-field" style={{ padding: '9px' }} />
+              </div>
+              <div>
+                <label className="label" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Thumbnail (Optional)</label>
+                <input type="file" accept="image/*" name="thumbnail" onChange={handleSectionChange} className="input-field" style={{ padding: '9px' }} />
+              </div>
+            </div>
+
+            {uploadProgress > 0 && uploadProgress < 100 && (
+              <div style={{ width: '100%', backgroundColor: 'rgba(255,255,255,0.1)', height: '6px', borderRadius: '3px', overflow: 'hidden', marginBottom: '20px' }}>
+                <div style={{ width: `${uploadProgress}%`, backgroundColor: 'var(--accent)', height: '100%', transition: 'width 0.2s' }}></div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setShowAddSection(false)} className="btn-secondary" disabled={savingSection}>Cancel</button>
+              <button type="submit" className="btn-primary" disabled={savingSection}>
+                {savingSection ? 'Uploading...' : 'Save Section'}
+              </button>
+            </div>
           </form>
-        </div>
+        ) : (
+          <button 
+            onClick={() => setShowAddSection(true)} 
+            style={{ width: '100%', padding: '16px', background: 'transparent', border: '1px dashed rgba(255, 255, 255, 0.2)', borderRadius: '12px', color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: '500', transition: 'all 0.2s', fontSize: '16px' }} 
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'rgba(198, 241, 44, 0.05)' }} 
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.background = 'transparent' }}
+          >
+            + Add New Section (Video)
+          </button>
+        )}
       </div>
       ) : (
         <form onSubmit={handleSaveDetails} className="glass-card" style={{ padding: '40px', border: '1px solid rgba(184, 255, 59, 0.15)' }}>
+          {/* Details tab remains the same */}
           <h3 style={{ fontSize: '24px', marginBottom: '24px' }}>Edit Course Details</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
             <div>

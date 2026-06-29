@@ -21,7 +21,7 @@ export const getMyEnrollments = () => API.get('/courses/enrollments/');
 export const toggleWishlist = (courseId) => API.post(`/courses/${courseId}/toggle_wishlist/`);
 export const getWishlists = () => API.get('/courses/wishlists/');
 export const submitReview = (data) => API.post('/courses/reviews/', data);
-export const toggleLessonProgress = (courseId, lessonId) => API.post(`/courses/${courseId}/toggle_progress/`, { lesson_id: lessonId });
+export const toggleSectionProgress = (courseId, sectionId) => API.post(`/courses/${courseId}/toggle_progress/`, { section_id: sectionId });
 
 export const getDiscussions = (courseId) => API.get(`/courses/discussions/?course=${courseId}`);
 export const createDiscussion = (courseId, data) => API.post('/courses/discussions/', { course: courseId, ...data });
@@ -31,14 +31,12 @@ export const getInstructors = () => API.get('/auth/instructors/');
 export const getInstructor = (id) => API.get(`/auth/instructors/${id}/`);
 
 // Curriculum Management
-export const createSection = (data) => API.post('/courses/sections/', data);
-export const updateSection = (id, data) => API.put(`/courses/sections/${id}/`, data);
-export const deleteSection = (id) => API.delete(`/courses/sections/${id}/`);
-
-export const createLesson = (data) => API.post('/courses/lessons/', data);
-export const updateLesson = (id, data) => API.put(`/courses/lessons/${id}/`, data);
-export const deleteLesson = (id) => API.delete(`/courses/lessons/${id}/`);
-
-export const uploadVideo = (data) => API.post('/courses/videos/', data, {
-  headers: { 'Content-Type': 'multipart/form-data' }
+export const createSection = (data, onUploadProgress) => API.post('/courses/sections/', data, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+  onUploadProgress
 });
+export const updateSection = (id, data, onUploadProgress) => API.patch(`/courses/sections/${id}/`, data, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+  onUploadProgress
+});
+export const deleteSection = (id) => API.delete(`/courses/sections/${id}/`);

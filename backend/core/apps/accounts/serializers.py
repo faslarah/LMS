@@ -78,3 +78,59 @@ class InstructorApplicationSerializer(serializers.ModelSerializer):
             'status', 'created_at', 'reviewed_at', 'reviewed_by'
         )
         read_only_fields = ('id', 'user', 'user_email', 'user_name', 'status', 'created_at', 'reviewed_at', 'reviewed_by')
+
+class PublicInstructorSerializer(serializers.ModelSerializer):
+    full_name = serializers.ReadOnlyField()
+    bio = serializers.SerializerMethodField()
+    expertise = serializers.SerializerMethodField()
+    experience = serializers.SerializerMethodField()
+    qualification = serializers.SerializerMethodField()
+    courses_published = serializers.SerializerMethodField()
+    students_taught = serializers.SerializerMethodField()
+    recent_courses = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id', 'first_name', 'last_name', 'full_name', 'email', 
+            'bio', 'expertise', 'experience', 'qualification',
+            'courses_published', 'students_taught', 'recent_courses'
+        )
+
+    def get_application(self, obj):
+        if not hasattr(self, '_application_cache'):
+            self._application_cache = {}
+        if obj.id not in self._application_cache:
+            try:
+                self._application_cache[obj.id] = obj.instructor_application
+            except Exception:
+                self._application_cache[obj.id] = None
+        return self._application_cache[obj.id]
+
+    def get_bio(self, obj):
+        app = self.get_application(obj)
+        return app.bio if app else ''
+
+    def get_expertise(self, obj):
+        app = self.get_application(obj)
+        return app.expertise if app else ''
+
+    def get_experience(self, obj):
+        app = self.get_application(obj)
+        return app.experience if app else ''
+
+    def get_qualification(self, obj):
+        app = self.get_application(obj)
+        return app.qualification if app else ''
+
+    def get_courses_published(self, obj):
+        return obj.courses.filter(is_published=True).count()
+
+    def get_students_taught(self, obj):
+        from apps.courses.models import Enrollment
+        return Enrollment.objects.filter(course__instructor=obj, course__is_published=True).values('student').distinct().count()
+
+    def get_recent_courses(self, obj):
+        from apps.courses.serializers import CourseSerializer
+        courses = obj.courses.filter(is_published=True)[:3]
+        return CourseSerializer(courses, many=True).data
