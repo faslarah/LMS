@@ -226,40 +226,33 @@ const Sidebar = () => {
           <>
             {renderSectionLabel('MAIN')}
             {renderLink('/dashboard', <IconLayoutDashboard />, 'Dashboard')}
-            {renderLink('/courses', <IconLibrary />, 'All Courses')}
-            {renderLink('/explore', <IconCompass />, 'Explore')}
+            
+            {user?.role === 'student' && (
+              <>
+                {renderLink('/courses', <IconLibrary />, 'All Courses')}
+                {renderLink('/explore', <IconCompass />, 'Explore')}
+
+                {renderSectionLabel('LEARNING')}
+                {renderLink('/student/learning', <IconBookOpen />, 'My Learning')}
+                {renderLink('/enrollments', <IconClipboardList />, 'My Enrollments')}
+                {renderLink('/certificates', <IconAward />, 'Certificates')}
+                {renderLink('/progress', <IconTrendingUp />, 'Progress')}
+              </>
+            )}
 
             {user?.role === 'instructor' && (
               <>
                 {renderSectionLabel('INSTRUCTOR')}
                 {renderLink('/instructor/courses', <IconBriefcase />, 'My Courses')}
                 {renderLink('/courses/create', <IconLibrary />, 'Create Course')}
-              </>
-            )}
-
-            {user?.role === 'student' && (
-              <>
-                {renderSectionLabel('LEARNING')}
-                {renderLink('/student/learning', <IconBookOpen />, 'My Learning')}
-                {renderLink('/enrollments', <IconClipboardList />, 'My Enrollments')}
-                {renderLink('/certificates', <IconAward />, 'Certificates')}
-                {renderLink('/progress', <IconTrendingUp />, 'Progress')}
-                {renderLink('/apply-instructor', <IconBriefcase />, 'Become an Instructor')}
-              </>
-            )}
-
-            {(user?.role === 'student' || user?.role === 'instructor') && (
-              <>
-                {renderSectionLabel('COMMUNITY')}
-                {renderLink('/instructors', <IconUsers />, 'Instructors')}
-                {renderLink('/discussions', <IconMessageSquare />, 'Discussions')}
-                {renderLink('/announcements', <IconBell />, 'Announcements')}
+                {renderLink('/instructor/analytics', <IconTrendingUp />, 'Analytics')}
+                {renderLink('/instructor/students', <IconUsers />, 'Students')}
+                {renderLink('/instructor/reviews', <IconMessageSquare />, 'Reviews')}
               </>
             )}
 
             {renderSectionLabel('ACCOUNT')}
-            {renderLink('/settings', <IconSettings />, 'Settings')}
-            {renderLink('/help', <IconHelpCircle />, 'Help & Support')}
+            {renderLink('/profile', <IconSettings />, 'Profile')}
           </>
         )}
       </div>

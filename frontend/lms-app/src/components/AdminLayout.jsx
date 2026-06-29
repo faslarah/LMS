@@ -34,9 +34,9 @@ const AdminLayout = ({ children }) => {
     return () => document.removeEventListener('click', closeProfile);
   }, []);
 
-  const handleLogout = (e) => {
+  const handleLogout = async (e) => {
     e.preventDefault();
-    logout();
+    await logout();
     window.location.href = '/login';
   };
 
